@@ -8,7 +8,7 @@ const sharp = require("sharp");
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, //10 MB
+    fileSize: 50 * 1024 * 1024, //50 MB
     files: 1,
   },
 });
@@ -78,13 +78,14 @@ app.post("/api/compress/image", upload.single("image"), async (req, res) => {
   }
 });
 
+//Error handler
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({
       success: false,
       message:
         err.code === "LIMIT_FILE_SIZE"
-          ? "The file must be 10 MiB or smaller."
+          ? "The file must be 50 MiB or smaller."
           : "Upload failed. Send one file using the image field.",
     });
   }

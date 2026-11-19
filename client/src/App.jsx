@@ -24,6 +24,7 @@ function App() {
       if (!response.ok) {
         throw new Error("Server Request failed");
       }
+
       const data = await response.json();
       setApiStatus(data.message);
     } catch {
@@ -55,11 +56,32 @@ function App() {
         throw new Error(data.message || "Compression failed.");
       }
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Upload failed.");
-      }
-      setUploadStatus(`${data.message}: ${data.name}`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const baseName = selectedFile.name.replace(/\.[^.]+$/, "");
+
+      link.href = url;
+      link.download = `${baseName}-compressed.webp`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+
+      const originalMB = (selectedFile.size / 1024 / 1024).toFixed(2);
+      const compressedMB = (blob.size / 1024 / 1024).toFixed(2);
+
+      setUploadStatus(
+        `Original: ${originalMB} MB to Webp: ${compressedMB} MB. Download started.`,
+      );
+
+      // const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(data.message || "Upload failed.");
+      // }
+      // setUploadStatus(`${data.message}: ${data.name}`);
     } catch (error) {
       setUploadStatus(error.message || "Could not upload the image.");
     } finally {
@@ -122,7 +144,7 @@ function App() {
         onClick={uploadImage}
         disabled={!selectedFile || isUploading}
       >
-        {isUploading ? "Uploading..." : "Test image upload"}
+        {isUploading ? "Compressing..." : "Compress image"}
       </button>
       <p role="status">{uploadStatus}</p>
     </main>
